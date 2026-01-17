@@ -351,6 +351,13 @@ def create_android_sdk_rules(
             "//conditions:default": ":aapt2_binary",
         }),
     )
+    native.alias(
+        name = "zipalign",
+        actual = select({
+            ":windows": "build-tools/%s/zipalign.exe" % build_tools_directory,
+            "//conditions:default": ":zipalign_binary",
+        }),
+    )
 
     native.alias(
         name = "fail",

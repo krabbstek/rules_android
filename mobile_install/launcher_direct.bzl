@@ -21,7 +21,13 @@ load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)
 
-_DEPLOY_SCRIPT = '''#!/bin/bash
+# TODO: Review
+_DEPLOY_SCRIPT_WIN = '''@echo off
+
+"{deploy}" -flagfile="{flags}" %*
+'''
+
+_DEPLOY_SCRIPT_BASH = '''#!/bin/bash
 set -e  # exit on failure
 umask 022  # set default file/dir creation mode to 755
 
@@ -44,6 +50,34 @@ else
 fi
 
 '''
+# _DEPLOY_SCRIPT = select(
+#     ":windows": '''@echo off
+
+# "{deploy}" -flagfile="{flags} %*"
+# ''',
+#     "//conditions:default": '''#!/bin/bash
+# set -e  # exit on failure
+# umask 022  # set default file/dir creation mode to 755
+
+# FLAGS={flags}
+# TEST_FLAGS={test_flags}
+# DEPLOY={deploy}
+
+
+# ALL_TEST_ARGS=("$@")
+# if [[ ! -z ${{TEST_FLAGS}} ]];
+# then
+#   RULE_TEST_ARGS={test_args}
+#   ALL_TEST_ARGS=("--nolaunch_app" "${{RULE_TEST_ARGS[@]}}" "$@")
+#   "${{DEPLOY}}" \
+#       -flagfile="${{TEST_FLAGS}}"  \
+#       "${{ALL_TEST_ARGS[@]}}"
+# else
+#     "${{DEPLOY}}" -flagfile="${{FLAGS}}" \
+#       "${{ALL_TEST_ARGS[@]}}"
+# fi
+
+# ''')
 
 def _make_deploy_script(
         ctx,
@@ -52,7 +86,12 @@ def _make_deploy_script(
         flags,
         test_args = "",
         test_flags = ""):
-    deploy_contents = _DEPLOY_SCRIPT.format(
+    deploy_script = _DEPLOY_SCRIPT_WIN
+    # deploy_script = select(
+    #     ":windows": _DEPLOY_SCRIPT_WIN,
+    #     "//conditions:default": _DEPLOY_SCRIPT_BASH,
+    # )
+    deploy_contents = deploy_script.format(
         deploy = deploy,
         flags = flags,
         test_flags = test_flags,

@@ -54,7 +54,8 @@ TOOL_ATTRS = dict(
     # Host Attrs
     _aapt2 = attr.label(
         default = Label(
-            "@androidsdk//:aapt2_binary",
+            # "@androidsdk//:aapt2_binary",
+            "@androidsdk//:aapt2",
         ),
         allow_files = True,
         cfg = "exec",
@@ -106,7 +107,8 @@ TOOL_ATTRS = dict(
     ),
     _zipalign = attr.label(
         default = Label(
-            "@androidsdk//:zipalign_binary",
+            # "@androidsdk//:zipalign_binary",
+            "@androidsdk//:zipalign",
         ),
         allow_files = True,
         cfg = "exec",

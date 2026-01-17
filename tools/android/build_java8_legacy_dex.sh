@@ -112,5 +112,5 @@ if [[ -n "${binary_jar}" ]]; then
   rm -rf "${tmpdir}"
 else
   # No shrinking just convert to DEX.
-  "$(rlocation rules_android/tools/android/d8)" --min-api "${min_api}" --no-desugaring --lib "${android_jar}" --output "${dest}" "${todex}"
+  "$(rlocation rules_android/tools/android/d8.exe)" --min-api "${min_api}" --no-desugaring --lib "${android_jar}" --output "${dest}" "${todex}"
 fi

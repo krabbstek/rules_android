@@ -116,7 +116,7 @@ def adapt(target, ctx):
     """
 
     # launcher is created here to be used as the sibling everywhere else.
-    launcher = utils.isolated_declare_file(ctx, ctx.label.name + "_mi/launcher")
+    launcher = utils.isolated_declare_file(ctx, ctx.label.name + "_mi/launcher.bat")
     mi_app_info = process(ctx, sibling = launcher, **extract(target, ctx))
 
     mi_app_launch_info = make_direct_launcher(
