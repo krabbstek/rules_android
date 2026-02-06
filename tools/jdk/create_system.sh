@@ -1,4 +1,4 @@
-#!/bin/bash
+#!bash
 # Copyright 2024 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -euo pipefail
+set -euox pipefail
 
 function ParseArgs() {
   local args_original="$@"
@@ -55,11 +55,12 @@ FLAGS_java_home=undefined
 FLAGS_module_info=undefined
 ParseArgs "$@"
 
-DIR="$(mktemp -d)"
+DIR="$(cygpath -m $(mktemp -d))"
 
 mkdir -p "${DIR}/jmod" "${DIR}/classes"
 
-"${FLAGS_unzip}" -o -q -d "${DIR}/classes" "${FLAGS_input}"
+# "${FLAGS_unzip}" -o -q -d "${DIR}/classes" "${FLAGS_input}"
+unzip -o -q -d "${DIR}/classes" "${FLAGS_input}"
 chmod -R a+rx "${DIR}/classes"
 
 rm -rf "${FLAGS_output}"

@@ -1,5 +1,6 @@
 load("@rules_java//java:java_import.bzl", "java_import")
 load("@rules_java//toolchains:default_java_toolchain.bzl", "default_java_toolchain")
+load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//tools/jdk:system.bzl", "android_system")
@@ -36,9 +37,18 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-sh_binary(
+# sh_binary(
+#     name = "create_system",
+#     srcs = ["create_system.sh"],
+#     # Required on Windows to avoid "LAUNCHER ERROR: Rlocation failed", because providing it via
+#     # the "tools" parameter of ctx.actions.run() doesn't seem to be enough.
+#     data = ["//tools/android:unzip"],
+#     visibility = ["//visibility:public"],
+# )
+
+py_binary(
     name = "create_system",
-    srcs = ["create_system.sh"],
+    srcs = ["create_system.py"],
     # Required on Windows to avoid "LAUNCHER ERROR: Rlocation failed", because providing it via
     # the "tools" parameter of ctx.actions.run() doesn't seem to be enough.
     data = ["//tools/android:unzip"],

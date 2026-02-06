@@ -294,6 +294,11 @@ _ATTRS = dict(
         default = Label("//tools/android:build_java8_legacy_dex"),
         executable = True,
     ),
+    tracereferences = attr.label(
+        cfg = "exec",
+        default = Label("//tools/android:tracereferences"),
+        executable = True,
+    ),
     dex_list_obfuscator = attr.label(
         cfg = "exec",
         default = "//tools/android:dex_list_obfuscator",

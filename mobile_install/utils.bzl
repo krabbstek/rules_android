@@ -215,17 +215,22 @@ def extract_jar_resources(ctx, jar, out_resources):
     # TODO(djwhang): Make another action that strips the resources from the Jar.
     # This makes the Jar itself a cacheable, even though resources changed.
     # Filters .class and directories from Jar files
-    ctx.actions.run_shell(
-        command = (
-            'cp $2 $1; chmod 644 $1; zip -qd $1 "*.class" "*/";' + "err=$?; if" +
-            " [ 0 -ne $err ] && [ 12 -ne $err ]; then exit ${err}; fi"
-        ),
-        arguments = [out_resources.path, jar.path],
-        inputs = [jar],
-        outputs = [out_resources],
-        mnemonic = "ExtractJarResources",
-        progress_message = "MI Extracting resources from " + jar.path,
+    ctx.actions.run(
+        executable = ctx.executable._extract_tool,
+        arguments = [jar.path, out_resources.path],
+        outputs = [out_resources]
     )
+    # ctx.actions.run_shell(
+    #     command = (
+    #         'cp $2 $1; chmod 644 $1; zip -qd $1 "*.class" "*/";' + "err=$?; if" +
+    #         " [ 0 -ne $err ] && [ 12 -ne $err ]; then exit ${err}; fi"
+    #     ),
+    #     arguments = [out_resources.path, jar.path],
+    #     inputs = [jar],
+    #     outputs = [out_resources],
+    #     mnemonic = "ExtractJarResources",
+    #     progress_message = "MI Extracting resources from " + jar.path,
+    # )
 
 def first(collection, allow_empty = False):
     """Returns the first item in the collection.

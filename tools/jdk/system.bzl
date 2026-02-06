@@ -89,7 +89,6 @@ def _android_system(ctx):
     args = ctx.actions.args()
     args.add("--input", core_jar)
     args.add("--output", system.path)
-    args.add("--unzip", ctx.executable._unzip)
     args.add("--java_home", java_runtime.java_home)
     args.add("--module_info", module_info)
     ctx.actions.run(
@@ -100,7 +99,7 @@ def _android_system(ctx):
             ],
             transitive = [java_runtime.files],
         ),
-        tools = [ctx.executable._unzip],
+        # tools = [ctx.executable._unzip],
         outputs = [system],
         arguments = [args],
         executable = ctx.executable.create_system,

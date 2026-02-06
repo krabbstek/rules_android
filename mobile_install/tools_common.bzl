@@ -116,6 +116,35 @@ TOOL_ATTRS = dict(
     ),
 
 
+    _extract_tool = attr.label(
+        default = Label("//mobile_install:extract_jar_resources"),
+        allow_files = True,
+        cfg = "exec",
+        executable = True,
+    ),
+
+    _make_r_java = attr.label(
+        default = Label("//mobile_install:make_r_java"),
+        allow_files = True,
+        cfg = "exec",
+        executable = True,
+    ),
+
+    _zipalign_sign = attr.label(
+        default = Label("//mobile_install:zipalign_sign"),
+        allow_files = True,
+        cfg = "exec",
+        executable = True,
+    ),
+
+    _cp = attr.label(
+        default = Label("//mobile_install:cp"),
+        allow_files = True,
+        cfg = "exec",
+        executable = True,
+    ),
+
+
     # Versioned Host Attrs
     _android_kit = attr.label(
         default = versioned_deps.android_kit.head,

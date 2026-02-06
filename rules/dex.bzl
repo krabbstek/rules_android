@@ -542,7 +542,13 @@ def _get_effective_incremental_dexing(
     # use_incremental_dexing config flag will take effect if incremental_dexing attr is not set
     return use_incremental_dexing
 
-def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_jar = None, bootclasspath_jar = None, min_sdk_version = 0):
+def _get_java8_legacy_dex_and_map(ctx,
+        build_customized_files = False,
+        binary_jar = None,
+        bootclasspath_jar = None,
+        min_sdk_version = 0,
+        # desugared_jdk_libs_jar = None,
+):
     if not build_customized_files:
         # TODO(b/329432231): Can we build this for each Android binary or generate one per minSdkVersion at least?
         return utils.only(get_android_toolchain(ctx).java8_legacy_dex.files.to_list()), None

@@ -170,8 +170,19 @@ def make_split_apks(
     # base needs to have code and declare it. Otherwise classpath will be empty :(
     # Use legacy dex here
     java8_legacy = utils.isolated_declare_file(ctx, ctx.label.name + "_mi/dex_java8_legacy/java8_legacy.zip")
-    ctx.actions.run_shell(
-        command = "cp $1 $2",
+    # ctx.actions.run_shell(
+    #     command = "cp $1 $2",
+    #     arguments = [
+    #         ctx.file._mi_java8_legacy_dex.path,
+    #         java8_legacy.path,
+    #     ],
+    #     inputs = [ctx.file._mi_java8_legacy_dex],
+    #     outputs = [java8_legacy],
+    #     mnemonic = "CopyJava8Legacy",
+    #     progress_message = "MI Copy %s to %s" % (ctx.file._mi_java8_legacy_dex.path, java8_legacy.path),
+    # )
+    ctx.actions.run(
+        executable = ctx.executable._cp,
         arguments = [
             ctx.file._mi_java8_legacy_dex.path,
             java8_legacy.path,
@@ -206,31 +217,36 @@ def _zipalign_sign(ctx, unsigned_apk, signed_apk, debug_signing_keys, debug_sign
                       " --deterministic-dsa-signing true" +
                       " --provider-class org.bouncycastle.jce.provider.BouncyCastleProvider")
 
+    debug_signing_key_params = []
+    for debug_signing_key in debug_signing_keys:
+        debug_signing_key_params += ["--next-signer", "--ks", debug_signing_key.path, "--ks-pass", "pass:android"]
+    debug_signing_key_params = debug_signing_key_params[1:]
+
+    signing_params = (
+        ["--lineage", debug_signing_lineage_file.path] if debug_signing_lineage_file else [] +
+        ["--rotation-min-sdk-version", key_rotation_min_sdk] if key_rotation_min_sdk else [] +
+        debug_signing_key_params +
+        ["--v1-signing-enabled", "true"] +
+        ["--v1-signer-name", "CERT"] +
+        ["--v2-signing-enabled", "true"] +
+        ["--v3-signing-enabled", "true"] +
+        ["--deterministic-dsa-signing", "true"] +
+        ["--provider-class", "org.bouncycastle.jce.provider.BouncyCastleProvider"]
+    )
+
     # note zipalign usage:
     # https://cs.android.com/android/platform/superproject/main/+/main:build/make/tools/zipalign/ZipAlignMain.cpp
 
-    cmd = """
-zipalign=$1
-unsigned_apk=$2
-jvm=$3
-apk_signer=$4
-signing_params=$5
-signed_apk=$6
-tmp_dir=$(mktemp -d)
-tmp_apk="${tmp_dir}/zipaligned.apk"
-${zipalign} -P 16 4 ${unsigned_apk} ${tmp_apk}
-${jvm} -jar ${apk_signer} sign ${signing_params} --out ${signed_apk} ${tmp_apk}
-"""
-    ctx.actions.run_shell(
-        command = cmd,
+    ctx.actions.run(
+        executable = ctx.executable._zipalign_sign,
         arguments = [
-            ctx.executable._zipalign.path,
-            unsigned_apk.path,
-            utils.host_jvm_path(ctx),
-            utils.first(ctx.attr._apk_signer[DefaultInfo].files.to_list()).path,
-            signing_params,
-            signed_apk.path,
-        ],
+            "--zipalign", ctx.executable._zipalign.path,
+            "--unsigned-apk", unsigned_apk.path,
+            "--jvm", utils.host_jvm_path(ctx),
+            "--apk-signer", utils.first(ctx.attr._apk_signer[DefaultInfo].files.to_list()).path,
+            "--signed-apk", signed_apk.path,
+            "--",
+        ] + signing_params,
         tools = [ctx.executable._zipalign],
         inputs = (debug_signing_keys +
                   ([debug_signing_lineage_file] if debug_signing_lineage_file else []) +
@@ -241,3 +257,36 @@ ${jvm} -jar ${apk_signer} sign ${signing_params} --out ${signed_apk} ${tmp_apk}
         mnemonic = "SignShellApp",
         progress_message = "MI Signing shell app %s" % unsigned_apk.path,
     )
+
+#     cmd = """
+# zipalign=$1
+# unsigned_apk=$2
+# jvm=$3
+# apk_signer=$4
+# signing_params=$5
+# signed_apk=$6
+# tmp_dir=$(mktemp -d)
+# tmp_apk="${tmp_dir}/zipaligned.apk"
+# ${zipalign} -P 16 4 ${unsigned_apk} ${tmp_apk}
+# ${jvm} -jar ${apk_signer} sign ${signing_params} --out ${signed_apk} ${tmp_apk}
+# """
+#     ctx.actions.run_shell(
+#         command = cmd,
+#         arguments = [
+#             ctx.executable._zipalign.path,
+#             unsigned_apk.path,
+#             utils.host_jvm_path(ctx),
+#             utils.first(ctx.attr._apk_signer[DefaultInfo].files.to_list()).path,
+#             signing_params,
+#             signed_apk.path,
+#         ],
+#         tools = [ctx.executable._zipalign],
+#         inputs = (debug_signing_keys +
+#                   ([debug_signing_lineage_file] if debug_signing_lineage_file else []) +
+#                   [unsigned_apk] +
+#                   ctx.attr._apk_signer[DefaultInfo].files.to_list() +
+#                   ctx.attr._java_jdk[DefaultInfo].files.to_list()),
+#         outputs = [signed_apk],
+#         mnemonic = "SignShellApp",
+#         progress_message = "MI Signing shell app %s" % unsigned_apk.path,
+#     )

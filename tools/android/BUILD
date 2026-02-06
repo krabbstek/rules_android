@@ -1,3 +1,5 @@
+load("@bazel_skylib//rules:run_binary.bzl", "run_binary")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library", "java_plugin")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
@@ -124,10 +126,17 @@ genrule(
 
 _MIN_SDK_VERSION = str(min_sdk_version.DEPOT_FLOOR)
 
-genrule(
+# genrule(
+#     name = "build_java8_legacy_dex_params",
+#     outs = ["build_java8_legacy_dex_params.txt"],
+#     cmd = "echo -n --min-api %s > $@" % _MIN_SDK_VERSION,
+#     visibility = ["//visibility:private"],
+# )
+write_file(
     name = "build_java8_legacy_dex_params",
-    outs = ["build_java8_legacy_dex_params.txt"],
-    cmd = "echo -n --min-api %s > $@" % _MIN_SDK_VERSION,
+    out = "build_java8_legacy_dex_params.txt",
+    content = ["--min-api", _MIN_SDK_VERSION],
+    # content = ["--min-api " + _MIN_SDK_VERSION],
     visibility = ["//visibility:private"],
 )
 
@@ -177,9 +186,24 @@ genrule(
     tools = ["//src/tools/java/com/google/devtools/build/android/r8:core_library_desugar"],
 )
 
-sh_binary(
+# sh_binary(
+#     name = "build_java8_legacy_dex",
+#     srcs = ["build_java8_legacy_dex.sh"],
+#     data = [
+#         "build_java8_legacy_dex_params",
+#         ":d8",
+#         ":desugared_jdk_libs_jar",
+#         ":minify_desugar_jdk_libs.pgcfg",
+#         ":r8",
+#         ":tracereferences",
+#         ":zip",
+#         "@rules_shell//shell/runfiles",
+#     ],
+#     visibility = ["//visibility:public"],
+# )
+py_binary(
     name = "build_java8_legacy_dex",
-    srcs = ["build_java8_legacy_dex.sh"],
+    srcs = ["build_java8_legacy_dex.py"],
     data = [
         "build_java8_legacy_dex_params",
         ":d8",
@@ -188,16 +212,23 @@ sh_binary(
         ":r8",
         ":tracereferences",
         ":zip",
-        "@rules_shell//shell/runfiles",
     ],
+    deps = ["@rules_python//python/runfiles"],
     visibility = ["//visibility:public"],
 )
 
-genrule(
+# genrule(
+#     name = "java8_legacy_dex",
+#     outs = ["java8_legacy.dex.zip"],
+#     cmd = "$(location :build_java8_legacy_dex) --output $@",
+#     tools = [":build_java8_legacy_dex"],
+#     visibility = ["//visibility:public"],
+# )
+run_binary(
     name = "java8_legacy_dex",
     outs = ["java8_legacy.dex.zip"],
-    cmd = "$(location :build_java8_legacy_dex) --output $@",
-    tools = [":build_java8_legacy_dex"],
+    tool = ":build_java8_legacy_dex",
+    args = ["--output", "$(location java8_legacy.dex.zip)"],
     visibility = ["//visibility:public"],
 )
 

@@ -27,6 +27,20 @@ def _make_r_java(ctx, resource_src_jar, main_r_java, out_r_java):
     # need to repackage the final version of the R classes for all packages.
     # In theory we could implement this as a provider in blaze and use whatever
     # they create, however their implementation might be suboptimal.
+
+    ctx.actions.run(
+        executable = ctx.executable._make_r_java,
+        arguments = [
+            "--resource-src-jar", resource_src_jar.path,
+            "--main-r-java", main_r_java,
+            "--out-r-java", out_r_java.path,
+        ],
+        inputs = [resource_src_jar],
+        outputs = [out_r_java],
+        mnemonic = "MakeRJava",
+        progress_message = "MI R.java " + out_r_java.path,
+    )
+
     cmd = """
 if [[ $1 == *.java ]]; then
   r_java=$1
@@ -43,18 +57,18 @@ else
   touch $3
 fi
 """
-    ctx.actions.run_shell(
-        command = cmd,
-        arguments = [
-            resource_src_jar.path,
-            main_r_java,
-            out_r_java.path,
-        ],
-        inputs = [resource_src_jar],
-        outputs = [out_r_java],
-        mnemonic = "MakeRJava",
-        progress_message = "MI R.java " + out_r_java.path,
-    )
+    # ctx.actions.run_shell(
+    #     command = cmd,
+    #     arguments = [
+    #         resource_src_jar.path,
+    #         main_r_java,
+    #         out_r_java.path,
+    #     ],
+    #     inputs = [resource_src_jar],
+    #     outputs = [out_r_java],
+    #     mnemonic = "MakeRJava",
+    #     progress_message = "MI R.java " + out_r_java.path,
+    # )
 
 def _make_r_jar(ctx, r_java, packages, out_r_jar):
     """Makes an R.jar containing all the Rs for the app."""
